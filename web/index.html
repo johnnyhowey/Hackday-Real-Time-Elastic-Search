@@ -153,11 +153,16 @@ YUI().use(
 		var groupFeed = A.one('.groups .card-feed');
 
 		function loadFeed(source, type) {
-			var postHTML = A.Array.map(source, renderPeopleCard);
+			var postHTML = [];
 
-			var feed = peopleFeed;
+			var feed = '';
 
-			if (type == 'microblog') {
+			if (type == 'people') {
+				postHTML = A.Array.map(source, renderMicroblogCard);
+
+				feed = peopleFeed;
+			}
+			else if (type == 'microblog') {
 				postHTML = A.Array.map(source, renderMicroblogCard);
 
 				feed = microblogFeed;
