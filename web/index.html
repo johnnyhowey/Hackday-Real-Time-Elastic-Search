@@ -12,7 +12,7 @@
 	<body>
 		<div class="main-content">
 			<div class="search-bar">
-				<input class="search-input" placeholder="Search" />
+				<input class="search-input" placeholder="Search people, groups, or microblogs." />
 			</div>
 			<div class="search-results">
 				<div class="span4">
@@ -158,7 +158,7 @@ YUI().use(
 			var feed = '';
 
 			if (type == 'people') {
-				postHTML = A.Array.map(source, renderMicroblogCard);
+				postHTML = A.Array.map(source, renderPeopleCard);
 
 				feed = peopleFeed;
 			}

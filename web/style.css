@@ -70,10 +70,6 @@ body * {
 	margin-bottom: 20px;
 }
 
-.span-content .card-feed {
-	height: 200px;
-}
-
 .card {
 	background-color: #FFF;
 	border-radius: 1px;
@@ -117,12 +113,21 @@ body * {
 }
 
 @media screen and (max-width: 1080px) {
-	.span4 {
-		width: 50%;
+	.search-results {
+		margin: 20px 10px;
+	}
+
+	.span4 .span-content {
+		margin: 0 10px;
 	}
 }
 
 @media screen and (max-width: 760px) {
+	.search-results {
+		margin: 20px auto;
+		max-width: 400px;
+	}
+
 	.span4 {
 		width: 100%;
 	}
