@@ -1,10 +1,24 @@
+html {
+	background-color: #EEEFF0;
+}
+
 body {
-	font-size: 14px/1em;
+	background-color: #EEEFF0;
 	margin: 0;
 }
 
+body * {
+	font-size: 14px/1em;
+	font-weight: lighter;
+	letter-spacing: 1px;
+}
+
+.main-content {
+	background-color: #EEEFF0;
+}
+
 .search-bar {
-	background-color: #EEE;
+	background-color: #1F7AFF;
 	box-shadow: -1px 1px 1px 0px rgba(50, 50, 50, 0.2);
 	box-sizing: border-box;
 	padding: 10px 10%;
@@ -12,16 +26,28 @@ body {
 }
 
 .search-bar .search-input {
-	border: 1px solid #DDD;
+	background-color: #438FFF;
 	border-radius: 5px;
+	border-width: 0;
 	box-sizing: border-box;
+	color: #FFF;
 	font-size: 1em;
-	padding: 5px;
+	padding: 5px 10px;
 	width: 100%;
+}
+
+.search-bar .search-input::-webkit-input-placeholder {
+	color: #FFF;
 }
 
 .search-results {
 	margin: 40px 10%;
+}
+
+.search-results:after {
+	clear: both;
+	content: "";
+	display: block;
 }
 
 .span4 {
@@ -31,20 +57,17 @@ body {
 }
 
 .span4 .span-content {
-	height: 220px;
 	margin: 0 40px;
 }
 
-.span-content .heading, .span-content .card {
-	background-color: #EEE;
-	box-shadow: -1px 2px 3px 0px rgba(50, 50, 50, 0.2);
-	color: #999;
+.clear {
+	clear: both;
 }
 
 .span-content .heading {
+	color: #1F7AFF;
 	font-size: 1.5em;
-	margin-bottom: 40px;
-	padding: 10px 20px;
+	margin-bottom: 20px;
 }
 
 .span-content .card-feed {
@@ -52,6 +75,10 @@ body {
 }
 
 .card {
+	background-color: #FFF;
+	border-radius: 1px;
+	box-shadow: -1px 2px 3px 0px rgba(50, 50, 50, 0.2);
+	color: #999;
 	clear: both;
 	padding: 10px;
 	margin-bottom: 20px;
@@ -87,4 +114,16 @@ body {
 .card .card-content {
 	clear: both;
 	margin-top: 5px;
+}
+
+@media screen and (max-width: 1080px) {
+	.span4 {
+		width: 50%;
+	}
+}
+
+@media screen and (max-width: 760px) {
+	.span4 {
+		width: 100%;
+	}
 }

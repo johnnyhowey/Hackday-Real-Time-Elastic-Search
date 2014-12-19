@@ -6,6 +6,7 @@
 		<script src="elasticsearch.min.js"></script>
 		<script src="http://cdn.alloyui.com/3.0.0/aui/aui-min.js"></script>
 		<link href="http://cdn.alloyui.com/3.0.0/aui-css/css/bootstrap.min.css" rel="stylesheet"></link>
+		<link href="http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet"></link>
 	</head>
 
 	<body>
@@ -18,6 +19,7 @@
 					<div class="span-content">
 						<div class="people">
 							<div class="heading">
+								<i class="icon-group"></i>
 								<span class="title">People</span>
 							</div>
 							<div class="card-feed">
@@ -30,6 +32,7 @@
 					<div class="span-content">
 						<div class="groups">
 							<div class="heading">
+								<i class="icon-th"></i>
 								<span class="title">Groups</span>
 							</div>
 							<div class="card-feed">
@@ -41,6 +44,7 @@
 					<div class="span-content">
 						<div class="microblogs">
 							<div class="heading">
+								<i class="icon-comment-alt"></i>
 								<span class="title">Microblogs</span>
 							</div>
 							<div class="card-feed">
@@ -48,7 +52,7 @@
 						</div>
 					</div>
 				</div>
-
+				<div class="clear"></div>
 			</div>
 		</div>
 	</body>
@@ -62,7 +66,12 @@ YUI().use(
 	function(A) {
 		// code goes here
 
-		var client = elasticsearch.Client({});
+		var client = elasticsearch.Client(
+			{
+				host: 'localhost:9200',
+				log: 'trace'
+			}
+		);
 
 		console.log(client);
 
@@ -77,10 +86,10 @@ YUI().use(
 				'</div>' +
 				'<div class="header-right">' +
 					'<div class="user-name">' +
-						'{creatorName}' +
+						'{userName}' +
 					'</div>' +
 					'<div class="card-date">' +
-						'{createDate}' +
+						'{emailAddress}' +
 					'</div>' +
 				'</div>' +
 			'</div>' +
@@ -132,9 +141,10 @@ YUI().use(
 		);
 
 		searchInput.on(
-			'keypress',
+			'keyup',
 			function(event) {
-				console.log(event.charCode);
+				console.log(event.currentTarget.val());
+				search(event.currentTarget.val());
 			}
 		);
 
@@ -158,7 +168,7 @@ YUI().use(
 				feed = groupFeed;
 			}
 
-			feed.prepend(postHTML.join(''));
+			feed.html(postHTML.join(''));
 		}
 
 		function renderPeopleCard(entryData) {
@@ -167,11 +177,25 @@ YUI().use(
 			return A.Lang.sub(
 				TPL_PEOPLE_CARD,
 				{
-					createDate: entryData.date,
-					creatorName: entryData.name,
-					portraitURL: entryData.portraitURL
+					emailAddress: entryData._source.emailAddress,
+					userName: getUserFullName(entryData),
+					portraitURL: entryData._source.portraitURL
 				}
 			);
+		}
+
+		function getUserFullName(entryData) {
+			var userName = entryData._source.firstName;
+
+			if (entryData._source.middleName) {
+				userName += ' ' + entryData._source.middleName;
+			}
+
+			if (entryData._source.lastName) {
+				userName += ' ' + entryData._source.lastName;
+			}
+
+			return userName;
 		}
 
 		function renderMicroblogCard(entryData) {
@@ -196,6 +220,33 @@ YUI().use(
 				{
 					description: entryData.description,
 					groupName: entryData.groupName
+				}
+			);
+		}
+
+		function search(query) {
+			client.search(
+				{
+					index: 'hackday',
+					type: 'UserDocumentType',
+					body: {
+						query: {
+							fuzzy: {	
+								firstName: query
+							}
+						}
+					}
+				}
+			).then(
+				function (resp) {
+					var hits = resp.hits.hits;
+
+					console.log(hits);
+
+					loadFeed(hits, 'people');
+				}, 
+				function (err) {
+					console.trace(err.message);
 				}
 			);
 		}
@@ -269,7 +320,7 @@ YUI().use(
 			}
 		]
 
-		loadFeed(peopleSource, 'people');
+		//loadFeed(peopleSource, 'people');
 		loadFeed(microblogSource, 'microblog');
 		loadFeed(groupSource, 'group');
 	}
