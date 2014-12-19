@@ -1,0 +1,90 @@
+body {
+	font-size: 14px/1em;
+	margin: 0;
+}
+
+.search-bar {
+	background-color: #EEE;
+	box-shadow: -1px 1px 1px 0px rgba(50, 50, 50, 0.2);
+	box-sizing: border-box;
+	padding: 10px 10%;
+	width: 100%;
+}
+
+.search-bar .search-input {
+	border: 1px solid #DDD;
+	border-radius: 5px;
+	box-sizing: border-box;
+	font-size: 1em;
+	padding: 5px;
+	width: 100%;
+}
+
+.search-results {
+	margin: 40px 10%;
+}
+
+.span4 {
+	box-sizing: border-box;
+	float: left;
+	width: 33.33%;
+}
+
+.span4 .span-content {
+	height: 220px;
+	margin: 0 40px;
+}
+
+.span-content .heading, .span-content .card {
+	background-color: #EEE;
+	box-shadow: -1px 2px 3px 0px rgba(50, 50, 50, 0.2);
+	color: #999;
+}
+
+.span-content .heading {
+	font-size: 1.5em;
+	margin-bottom: 40px;
+	padding: 10px 20px;
+}
+
+.span-content .card-feed {
+	height: 200px;
+}
+
+.card {
+	clear: both;
+	padding: 10px;
+	margin-bottom: 20px;
+	overflow: hidden;
+}
+
+.card .card-header {
+	overflow: hidden;
+}
+
+.card .avatar {
+	float: left;
+	height: auto;
+	width: 48px;
+}
+
+.card .avatar .user-portrait {
+	border-radius: 24px;
+	height: 48px;
+	overflow: hidden;
+	width: 48px;
+}
+
+.card .header-right {
+	float: left;
+	margin-left: 10px;
+}
+
+.card .user-name, .card .group-name {
+	font-size: 1.25em;
+}
+
+.card .card-content {
+	clear: both;
+	margin-top: 5px;
+}
