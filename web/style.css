@@ -98,6 +98,10 @@ body * {
 	width: 48px;
 }
 
+.card .avatar i {
+	font-size: 48px;
+}
+
 .card .header-right {
 	float: left;
 	margin-left: 10px;

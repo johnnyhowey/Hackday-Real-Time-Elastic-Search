@@ -68,7 +68,7 @@ YUI().use(
 
 		var client = elasticsearch.Client(
 			{
-				host: 'localhost:9200',
+				host: '172.16.17.251:9200',
 				log: 'trace'
 			}
 		);
@@ -80,9 +80,10 @@ YUI().use(
 		var TPL_PEOPLE_CARD = '<div class="card">' +
 			'<div class="card-header">' +
 				'<div class="avatar">' +
-					'<img class="user-portrait" src="' + 
-						'{portraitURL}' +
-					'" />' +
+					//'<img class="user-portrait" src="' + 
+					//	'{portraitURL}' +
+					//'" />' +
+					'<i class="icon-user"></i>' +
 				'</div>' +
 				'<div class="header-right">' +
 					'<div class="user-name">' +
@@ -98,9 +99,10 @@ YUI().use(
 		var TPL_MICROBLOG_CARD = '<div class="card">' +
 			'<div class="card-header">' +
 				'<div class="avatar">' +
-					'<img class="user-portrait" src="' + 
-						'{portraitURL}' +
-					'" />' +
+					//'<img class="user-portrait" src="' + 
+					//	'{portraitURL}' +
+					//'" />' +
+					'<i class="icon-user"></i>' +
 				'</div>' +
 				'<div class="header-right">' +
 					'<div class="user-name">' +
@@ -144,7 +146,11 @@ YUI().use(
 			'keyup',
 			function(event) {
 				console.log(event.currentTarget.val());
-				search(event.currentTarget.val());
+				search(event.currentTarget.val(), 'UserDocumentType', ['firstName', 'lastName'], 'people');
+
+				search(event.currentTarget.val(), 'MicroblogDocumentType', ['content', 'userName'], 'microblog');
+
+				search(event.currentTarget.val(), 'GroupDocumentType', ['name', 'description'], 'group');
 			}
 		);
 
@@ -163,7 +169,12 @@ YUI().use(
 				feed = peopleFeed;
 			}
 			else if (type == 'microblog') {
-				postHTML = A.Array.map(source, renderMicroblogCard);
+				if (source) {
+					postHTML = A.Array.map(source, renderMicroblogCard);
+				}
+				else {
+					postHTML = '<span>There are no microblog entries that fit your query.</span>';
+				}
 
 				feed = microblogFeed;
 			}
@@ -209,10 +220,10 @@ YUI().use(
 			return A.Lang.sub(
 				TPL_MICROBLOG_CARD,
 				{
-					createDate: entryData.date,
-					creatorName: entryData.name,
-					content: entryData.content,
-					portraitURL: entryData.portraitURL
+					createDate: entryData._source.createDate,
+					creatorName: entryData._source.userName,
+					content: entryData._source.content,
+					portraitURL: entryData._source.portraitURL
 				}
 			);
 		}
@@ -223,21 +234,24 @@ YUI().use(
 			return A.Lang.sub(
 				TPL_GROUP_CARD,
 				{
-					description: entryData.description,
-					groupName: entryData.groupName
+					description: entryData._source.description,
+					groupName: entryData._source.name
 				}
 			);
 		}
 
-		function search(query) {
+		function search(query, documentType, fields, feed) {
 			client.search(
 				{
 					index: 'hackday',
-					type: 'UserDocumentType',
+					type: documentType,
 					body: {
 						query: {
-							fuzzy: {	
-								firstName: query
+							fuzzy_like_this: {
+								fields: fields,
+								like_text: query,
+								max_query_terms: 12,
+								fuzziness: 'AUTO'
 							}
 						}
 					}
@@ -248,7 +262,7 @@ YUI().use(
 
 					console.log(hits);
 
-					loadFeed(hits, 'people');
+					loadFeed(hits, feed);
 				}, 
 				function (err) {
 					console.trace(err.message);
@@ -326,8 +340,8 @@ YUI().use(
 		]
 
 		//loadFeed(peopleSource, 'people');
-		loadFeed(microblogSource, 'microblog');
-		loadFeed(groupSource, 'group');
+		//loadFeed(microblogSource, 'microblog');
+		//loadFeed(groupSource, 'group');
 	}
 );
 </script>
