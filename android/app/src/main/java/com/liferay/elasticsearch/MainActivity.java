@@ -9,15 +9,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.SearchView;
 
-import com.searchly.jestdroid.DroidClientConfig;
-import com.searchly.jestdroid.JestClientFactory;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class MainActivity extends ListActivity {
+public class MainActivity extends ListActivity
+	implements SearchView.OnQueryTextListener {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -33,22 +31,6 @@ public class MainActivity extends ListActivity {
 	}
 
 	@Override
-	protected void onNewIntent(Intent intent) {
-		super.onNewIntent(intent);
-
-		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-			String query = intent.getStringExtra(SearchManager.QUERY);
-
-			try {
-				search(query);
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.menu, menu);
@@ -58,6 +40,8 @@ public class MainActivity extends ListActivity {
 
 		SearchView searchView = (SearchView)menu.findItem(
 			R.id.search).getActionView();
+
+		searchView.setOnQueryTextListener(this);
 
 		searchView.setSearchableInfo(
 			searchManager.getSearchableInfo(getComponentName()));
@@ -99,6 +83,24 @@ public class MainActivity extends ListActivity {
 		}
 
 		return users;
+	}
+
+	@Override
+	public boolean onQueryTextSubmit(String query) {
+		return true;
+	}
+
+	@Override
+	public boolean onQueryTextChange(String query) {
+		try {
+			System.out.println(query);
+			search(query);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return true;
 	}
 
 }
