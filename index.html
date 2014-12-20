@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Elastic Search</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<script src="elasticsearch.min.js"></script>
+		<script src="http://cdn.alloyui.com/3.0.0/aui/aui-min.js"></script>
+		<link href="http://cdn.alloyui.com/3.0.0/aui-css/css/bootstrap.min.css" rel="stylesheet"></link>
+		<link href="http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet"></link>
+	</head>
+
+	<body>
+		<div class="main-content">
+			<div class="search-bar">
+				<input class="search-input" placeholder="Search people, groups, or microblogs." />
+			</div>
+			<div class="search-results">
+				<div class="span4">
+					<div class="span-content">
+						<div class="people">
+							<div class="heading">
+								<i class="icon-group"></i>
+								<span class="title">People</span>
+							</div>
+							<div class="card-feed">
+							
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="span4">
+					<div class="span-content">
+						<div class="groups">
+							<div class="heading">
+								<i class="icon-th"></i>
+								<span class="title">Groups</span>
+							</div>
+							<div class="card-feed">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="span4">
+					<div class="span-content">
+						<div class="microblogs">
+							<div class="heading">
+								<i class="icon-comment-alt"></i>
+								<span class="title">Microblogs</span>
+							</div>
+							<div class="card-feed">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</div>
+	</body>
+</html>
+
+<script>
+console.log('script');
+
+YUI().use(
+	'aui-base',
+	function(A) {
+		// code goes here
+
+		var client = elasticsearch.Client(
+			{
+				host: '172.16.17.251:9200',
+				log: 'trace'
+			}
+		);
+
+		console.log(client);
+
+		var instance = this;
+
+		var TPL_PEOPLE_CARD = '<div class="card">' +
+			'<div class="card-header">' +
+				'<div class="avatar">' +
+					//'<img class="user-portrait" src="' + 
+					//	'{portraitURL}' +
+					//'" />' +
+					'<i class="icon-user"></i>' +
+				'</div>' +
+				'<div class="header-right">' +
+					'<div class="user-name">' +
+						'{userName}' +
+					'</div>' +
+					'<div class="card-date">' +
+						'{emailAddress}' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+		'</div>';
+
+		var TPL_MICROBLOG_CARD = '<div class="card">' +
+			'<div class="card-header">' +
+				'<div class="avatar">' +
+					//'<img class="user-portrait" src="' + 
+					//	'{portraitURL}' +
+					//'" />' +
+					'<i class="icon-user"></i>' +
+				'</div>' +
+				'<div class="header-right">' +
+					'<div class="user-name">' +
+						'{creatorName}' +
+					'</div>' +
+					'<div class="card-date">' +
+						'{createDate}' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+			'<div class="card-content">' +
+				'<span>' +
+					'{content}' +
+				'</span>' +
+			'</div>' +
+		'</div>';
+
+		var TPL_GROUP_CARD = '<div class="card">' +
+			'<div class="card-header">' +
+				'<span class="group-name">' +
+					'{groupName}' +
+				'</span>' +
+			'</div>' +
+			'<div class="card-content">' +
+				'<span>' +
+					'{description}' +
+				'</span>' +
+			'</div>' +
+		'</div>';
+
+		var searchInput = A.one('.search-input');
+
+		searchInput.on(
+			'click',
+			function() {
+				console.log('search');
+			}
+		);
+
+		searchInput.on(
+			'keyup',
+			function(event) {
+				console.log(event.currentTarget.val());
+				search(event.currentTarget.val(), 'UserDocumentType', ['firstName', 'lastName'], 'people');
+
+				search(event.currentTarget.val(), 'MicroblogDocumentType', ['content', 'userName'], 'microblog');
+
+				search(event.currentTarget.val(), 'GroupDocumentType', ['name', 'description'], 'group');
+			}
+		);
+
+		var peopleFeed = A.one('.people .card-feed');
+		var microblogFeed = A.one('.microblogs .card-feed');
+		var groupFeed = A.one('.groups .card-feed');
+
+		function loadFeed(source, type) {
+			var postHTML = [];
+
+			var feed = '';
+
+			if (type == 'people') {
+				postHTML = A.Array.map(source, renderPeopleCard);
+
+				feed = peopleFeed;
+			}
+			else if (type == 'microblog') {
+				if (source) {
+					postHTML = A.Array.map(source, renderMicroblogCard);
+				}
+				else {
+					postHTML = '<span>There are no microblog entries that fit your query.</span>';
+				}
+
+				feed = microblogFeed;
+			}
+			else if (type == 'group') {
+				postHTML = A.Array.map(source, renderGroupCard);
+
+				feed = groupFeed;
+			}
+
+			feed.html(postHTML.join(''));
+		}
+
+		function renderPeopleCard(entryData) {
+			var instance = this;
+
+			return A.Lang.sub(
+				TPL_PEOPLE_CARD,
+				{
+					emailAddress: entryData._source.emailAddress,
+					userName: getUserFullName(entryData),
+					portraitURL: entryData._source.portraitURL
+				}
+			);
+		}
+
+		function getUserFullName(entryData) {
+			var userName = entryData._source.firstName;
+
+			if (entryData._source.middleName) {
+				userName += ' ' + entryData._source.middleName;
+			}
+
+			if (entryData._source.lastName) {
+				userName += ' ' + entryData._source.lastName;
+			}
+
+			return userName;
+		}
+
+		function renderMicroblogCard(entryData) {
+			var instance = this;
+
+			return A.Lang.sub(
+				TPL_MICROBLOG_CARD,
+				{
+					createDate: entryData._source.createDate,
+					creatorName: entryData._source.userName,
+					content: entryData._source.content,
+					portraitURL: entryData._source.portraitURL
+				}
+			);
+		}
+
+		function renderGroupCard(entryData) {
+			var instance = this;
+
+			return A.Lang.sub(
+				TPL_GROUP_CARD,
+				{
+					description: entryData._source.description,
+					groupName: entryData._source.name
+				}
+			);
+		}
+
+		function search(query, documentType, fields, feed) {
+			client.search(
+				{
+					index: 'hackday',
+					type: documentType,
+					body: {
+						query: {
+							fuzzy_like_this: {
+								fields: fields,
+								like_text: query,
+								max_query_terms: 12,
+								fuzziness: 'AUTO'
+							}
+						}
+					}
+				}
+			).then(
+				function (resp) {
+					var hits = resp.hits.hits;
+
+					console.log(hits);
+
+					loadFeed(hits, feed);
+				}, 
+				function (err) {
+					console.trace(err.message);
+				}
+			);
+		}
+
+		var peopleSource = [
+			{
+				date:'May 19, 1987', 
+				name:'Evan M Thibodeau',
+				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
+			},
+			{
+				date:'May 19, 1987', 
+				name:'Jonathan Lee',
+				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
+			},
+			{
+				date:'May 19, 1987', 
+				name:'Bruno Admin',
+				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
+			},
+			{
+				date:'May 19, 1987', 
+				name:'Zeno Rocha',
+				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
+			}
+		]
+
+		var microblogSource = [
+			{
+				content: 'New microblog post about things being awesome and great!',
+				date:'May 19, 1987', 
+				name:'Evan M Thibodeau',
+				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
+			},
+			{
+				content: 'New microblog post about things being awesome and great!',
+				date:'May 19, 1987', 
+				name:'Evan M Thibodeau',
+				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
+			},
+			{
+				content: 'New microblog post about things being awesome and great!',
+				date:'May 19, 1987', 
+				name:'Evan M Thibodeau',
+				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
+			},
+			{
+				content: 'New microblog post about things being awesome and great!',
+				date:'May 19, 1987', 
+				name:'Evan M Thibodeau',
+				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
+			}
+		]
+
+		var groupSource = [
+			{
+				description:'Alloy is a UI framework that provides a consistent and simple API for building high scalable applications across all three levels of the browser: structure, style and behavior.', 
+				groupName:'AlloyUI'
+			},
+			{
+				description:'All HR related information for Liferay, INC. (US Employees)', 
+				groupName:'Human Resources - US'
+			},
+			{
+				description:'A collaborative community that shares information dedicated to food & fun. Like free food, cow-pooling, basketball, discounts for Liferay employees? This site is for you!', 
+				groupName:'Food & Fun'
+			},
+			{
+				description:'This site will be used by professional services department for each region. Specifically a knowledge base for consultants.', 
+				groupName:'Global Services'
+			}
+		]
+
+		//loadFeed(peopleSource, 'people');
+		//loadFeed(microblogSource, 'microblog');
+		//loadFeed(groupSource, 'group');
+	}
+);
+</script>
