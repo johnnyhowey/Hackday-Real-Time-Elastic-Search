@@ -9,6 +9,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.SearchView;
 
+import com.searchly.jestdroid.DroidClientConfig;
+import com.searchly.jestdroid.JestClientFactory;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,7 +27,7 @@ public class MainActivity extends ListActivity {
 
 		UserListAdapter adapter = new UserListAdapter(
 			this, android.R.layout.simple_list_item_1,
-			new ArrayList<JSONObject>());
+			new ArrayList<User>());
 
 		setListAdapter(adapter);
 	}
@@ -35,7 +38,13 @@ public class MainActivity extends ListActivity {
 
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			String query = intent.getStringExtra(SearchManager.QUERY);
-			search(query);
+
+			try {
+				search(query);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -58,11 +67,10 @@ public class MainActivity extends ListActivity {
 		return true;
 	}
 
-	protected void search(String query) {
+	protected void search(String query) throws Exception {
 		UserListAdapter adapter = (UserListAdapter)getListAdapter();
 
-		adapter.clear();
-		adapter.addAll(getUsers());
+		new SearchAsyncTask(adapter, query).execute();
 	}
 
 	protected ArrayList<JSONObject> getUsers() {

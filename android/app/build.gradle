@@ -15,4 +15,5 @@ android {
 
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
+	compile group: 'io.searchbox', name: 'jest-droid', version: '0.1.4'
 }

@@ -11,11 +11,9 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-public class UserListAdapter extends ArrayAdapter<JSONObject> {
+public class UserListAdapter extends ArrayAdapter<User> {
 
-	public UserListAdapter(
-		Context context, int resource, List<JSONObject> users) {
-
+	public UserListAdapter(Context context, int resource, List<User> users) {
 		super(context, resource, users);
 	}
 
@@ -23,18 +21,9 @@ public class UserListAdapter extends ArrayAdapter<JSONObject> {
 	public View getView(int position, View convertView, ViewGroup parent) {
 		TextView view = (TextView)super.getView(position, convertView, parent);
 
-		JSONObject user = getItem(position);
+		User user = getItem(position);
 
-		String name = user.toString();
-
-		try {
-			name = user.getString("name");
-		}
-		catch (JSONException e) {
-			e.printStackTrace();
-		}
-
-		view.setText(name);
+		view.setText(user.firstName);
 
 		return view;
 	}
