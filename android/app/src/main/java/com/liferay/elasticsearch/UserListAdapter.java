@@ -23,7 +23,7 @@ public class UserListAdapter extends ArrayAdapter<User> {
 
 		User user = getItem(position);
 
-		view.setText(user.firstName);
+		view.setText(user.firstName + " " + user.lastName);
 
 		return view;
 	}

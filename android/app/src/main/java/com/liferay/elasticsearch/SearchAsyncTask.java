@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.searchly.jestdroid.DroidClientConfig;
 import com.searchly.jestdroid.JestClientFactory;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -26,14 +27,20 @@ public class SearchAsyncTask extends AsyncTask<Object, Void, List<User>> {
 		List<User> users = new ArrayList<User>();
 
 		try {
-			JSONObject queryString = new JSONObject();
-			queryString.put("query", _query);
+			JSONArray fields = new JSONArray();
+			fields.put("firstName");
+			fields.put("lastName");
 
-			JSONObject query = new JSONObject();
-			query.put("query_string", queryString);
+			JSONObject child = new JSONObject();
+			child.put("fields", fields);
+			child.put("like_text", _query);
+			child.put("max_query_terms", 12);
+
+			JSONObject fuzzy = new JSONObject();
+			fuzzy.put("fuzzy_like_this", child);
 
 			JSONObject root = new JSONObject();
-			root.put("query", query);
+			root.put("query", fuzzy);
 
 			DroidClientConfig clientConfig = new DroidClientConfig.Builder(
 				"http://172.16.17.251:9200").build();
