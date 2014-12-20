@@ -5,6 +5,7 @@
 		<link rel="stylesheet" type="text/css" href="style.css">
 		<script src="elasticsearch.min.js"></script>
 		<script src="http://cdn.alloyui.com/3.0.0/aui/aui-min.js"></script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment-with-locales.min.js" type="text/javascript"></script>
 		<link href="http://cdn.alloyui.com/3.0.0/aui-css/css/bootstrap.min.css" rel="stylesheet"></link>
 		<link href="http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet"></link>
 	</head>
@@ -64,8 +65,6 @@ console.log('script');
 YUI().use(
 	'aui-base',
 	function(A) {
-		// code goes here
-
 		var client = elasticsearch.Client(
 			{
 				host: '172.16.17.251:9200',
@@ -164,22 +163,32 @@ YUI().use(
 			var feed = '';
 
 			if (type == 'people') {
-				postHTML = A.Array.map(source, renderPeopleCard);
+				if (source.length > 0) {
+					postHTML = A.Array.map(source, renderPeopleCard);
+				}
+				else {
+					postHTML = ['<span>There are no people that fit your query.</span>'];
+				}
 
 				feed = peopleFeed;
 			}
 			else if (type == 'microblog') {
-				if (source) {
+				if (source.length > 0) {
 					postHTML = A.Array.map(source, renderMicroblogCard);
 				}
 				else {
-					postHTML = '<span>There are no microblog entries that fit your query.</span>';
+					postHTML = ['<span>There are no microblog entries that fit your query.</span>'];
 				}
 
 				feed = microblogFeed;
 			}
 			else if (type == 'group') {
-				postHTML = A.Array.map(source, renderGroupCard);
+				if (source.length > 0) {
+					postHTML = A.Array.map(source, renderGroupCard);
+				}
+				else {
+					postHTML = ['<span>There are no groups that fit your query.</span>'];
+				}
 
 				feed = groupFeed;
 			}
@@ -220,7 +229,7 @@ YUI().use(
 			return A.Lang.sub(
 				TPL_MICROBLOG_CARD,
 				{
-					createDate: entryData._source.createDate,
+					createDate: moment(entryData._source.createDate).fromNow(),
 					creatorName: entryData._source.userName,
 					content: entryData._source.content,
 					portraitURL: entryData._source.portraitURL
@@ -270,78 +279,11 @@ YUI().use(
 			);
 		}
 
-		var peopleSource = [
-			{
-				date:'May 19, 1987', 
-				name:'Evan M Thibodeau',
-				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
-			},
-			{
-				date:'May 19, 1987', 
-				name:'Jonathan Lee',
-				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
-			},
-			{
-				date:'May 19, 1987', 
-				name:'Bruno Admin',
-				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
-			},
-			{
-				date:'May 19, 1987', 
-				name:'Zeno Rocha',
-				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
-			}
-		]
+		search('', 'UserDocumentType', ['firstName', 'lastName'], 'people');
 
-		var microblogSource = [
-			{
-				content: 'New microblog post about things being awesome and great!',
-				date:'May 19, 1987', 
-				name:'Evan M Thibodeau',
-				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
-			},
-			{
-				content: 'New microblog post about things being awesome and great!',
-				date:'May 19, 1987', 
-				name:'Evan M Thibodeau',
-				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
-			},
-			{
-				content: 'New microblog post about things being awesome and great!',
-				date:'May 19, 1987', 
-				name:'Evan M Thibodeau',
-				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
-			},
-			{
-				content: 'New microblog post about things being awesome and great!',
-				date:'May 19, 1987', 
-				name:'Evan M Thibodeau',
-				portraitURL: 'https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xpa1/v/t1.0-9/10409687_10100173437592157_815806072622738239_n.jpg?oh=0a5de57e9c8d1604a11a594becfa9efa&oe=55013229&__gda__=1425980995_44123b91715e3ac760c58a25df985f33'
-			}
-		]
+		search('', 'MicroblogDocumentType', ['content', 'userName'], 'microblog');
 
-		var groupSource = [
-			{
-				description:'Alloy is a UI framework that provides a consistent and simple API for building high scalable applications across all three levels of the browser: structure, style and behavior.', 
-				groupName:'AlloyUI'
-			},
-			{
-				description:'All HR related information for Liferay, INC. (US Employees)', 
-				groupName:'Human Resources - US'
-			},
-			{
-				description:'A collaborative community that shares information dedicated to food & fun. Like free food, cow-pooling, basketball, discounts for Liferay employees? This site is for you!', 
-				groupName:'Food & Fun'
-			},
-			{
-				description:'This site will be used by professional services department for each region. Specifically a knowledge base for consultants.', 
-				groupName:'Global Services'
-			}
-		]
-
-		//loadFeed(peopleSource, 'people');
-		//loadFeed(microblogSource, 'microblog');
-		//loadFeed(groupSource, 'group');
+		search('', 'GroupDocumentType', ['name', 'description'], 'group');
 	}
 );
 </script>
